@@ -1,0 +1,9 @@
+가설
+1. 추첨량이 많아지면 기초금액과 예가는 비슷해 진다.
+SELECT code, SUM(Choose) AS total_choose
+FROM draw_prices_table
+GROUP BY code;
+
+2. 금액 구간별 데이터는 다른 패턴을 가진다.
+3. 지역에 따라 패턴이 다르다.
+4. 지역, 금액구간이 유사 하다면 예가는 비슷한 패턴을 가진다.

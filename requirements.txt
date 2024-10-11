@@ -1,0 +1,7 @@
+pandas
+pyautogui
+selenium
+google-cloud-vision
+sqlalchemy
+mysql-connector-python
+webdriver-manager
