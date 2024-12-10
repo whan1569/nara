@@ -12,7 +12,7 @@ engine = create_engine('mysql+pymysql://root:1234@127.0.0.1:3306/nara')
 base_url = "https://www.g2b.go.kr:8101/ep/tbid/tbidList.do"
 
 # 시작 날짜와 종료 날짜 설정
-year = 2013
+year = 2022
 start_date = datetime.strptime(f'{year}/01/01', '%Y/%m/%d')
 end_date = datetime.strptime(f'{year}/12/31', '%Y/%m/%d')
 

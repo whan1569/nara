@@ -2,6 +2,7 @@ import os
 import pyautogui
 import time
 import re
+import keyboard
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -13,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 # Google Cloud Vision API 환경 변수 설정 (실제 경로로 수정)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'C:\Users\USER\Desktop\nara\my-key.json'
 
+year = 2012
 # 데이터베이스 연결 설정
 DATABASE_URL = 'mysql+mysqlconnector://root:1234@127.0.0.1:3306/nara'
 engine = create_engine(DATABASE_URL)
@@ -79,8 +81,8 @@ def detect_text(image_path, bidno):
             df_summary = pd.DataFrame(summary_data)
 
             # DataFrame을 MySQL 테이블에 삽입
-            df_draw_prices.to_sql('draw_2020', con=engine, if_exists='append', index=False)
-            df_summary.to_sql('summary_2020', con=engine, if_exists='append', index=False)
+            df_draw_prices.to_sql(f'draw_{year}', con=engine, if_exists='append', index=False)
+            df_summary.to_sql(f'summary_{year}', con=engine, if_exists='append', index=False)
 
             print(f"Data for {bidno} inserted successfully!")
 
@@ -92,7 +94,7 @@ def detect_text(image_path, bidno):
 def fetch_codes_from_database():
     """MySQL 데이터베이스에서 코드를 조회하고 마지막 3자를 제거하여 반환합니다."""
     metadata = MetaData()
-    ticker_table = Table('ticker_2020', metadata, autoload_with=engine)
+    ticker_table = Table(f'ticker_{year}', metadata, autoload_with=engine)
 
     query = select(ticker_table.c.Code).where(
         (func.length(ticker_table.c.Code) == 14) &
@@ -106,9 +108,9 @@ def fetch_codes_from_database():
     return modified_codes
 
 def fetch_processed_codes():
-    """이미 처리된 코드들을 summary_table에서 조회합니다."""
+    """이미 처리된 코드들을 summary_table에서 조회하고 반환합니다."""
     metadata = MetaData()
-    summary_table = Table('summary_2020', metadata, autoload_with=engine)
+    summary_table = Table(f'summary_{year}', metadata, autoload_with=engine)
 
     query = select(summary_table.c.Code)
 
@@ -155,7 +157,7 @@ def process_bid(bidno):
         # 캡처할 영역 (x, y, width, height)
         region = (23, 555, 880, 340)  # 원하는 좌표로 수정
 
-        # 화면 캡처f
+        # 화면 캡처
         captured_image_path = capture_screen(region)
 
         # 이미지에서 한글 텍스트 추출 및 정제
@@ -166,16 +168,24 @@ def process_bid(bidno):
         # 드라이버 종료
         driver.quit()
 
+def process_with_keyboard_interrupt(codes_to_process):
+    """키보드 's' 입력으로 중단이 가능한 코드 처리 함수."""
+    for code in codes_to_process:
+        print(f"Processing bidno: {code}")
+        process_bid(code)
+
+        if keyboard.is_pressed('s'):
+            print("작업이 중단되었습니다.")
+            break
+
 # 메인 함수
 if __name__ == "__main__":
     # 데이터베이스에서 코드 조회
     all_codes = fetch_codes_from_database()
     processed_codes = fetch_processed_codes()
 
-    # 처리되지 않은 코드 찾기
+    # 처리되지 않은 코드 찾기 (이미 처리된 코드는 생략)
     codes_to_process = [code for code in all_codes if code not in processed_codes]
 
-    # 각 코드에 대해 작업 수행
-    for code in codes_to_process:
-        print(f"Processing bidno: {code}")
-        process_bid(code)
+    # 각 코드에 대해 작업 수행, 키보드 's' 입력으로 중단 가능
+    process_with_keyboard_interrupt(codes_to_process)

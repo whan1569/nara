@@ -14,7 +14,7 @@ from sqlalchemy.orm import sessionmaker
 # Google Cloud Vision API 환경 변수 설정 (실제 경로로 수정)
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'C:\Users\USER\Desktop\nara\my-key.json'
 
-year = 2013
+year = 2012
 # 데이터베이스 연결 설정
 DATABASE_URL = 'mysql+mysqlconnector://root:1234@127.0.0.1:3306/nara'
 engine = create_engine(DATABASE_URL)
